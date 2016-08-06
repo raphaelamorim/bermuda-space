@@ -12,6 +12,8 @@ import {
   View
 } from 'react-native';
 const FBSDK = require('react-native-fbsdk');
+const GivingForm = require('./containers/GivingForm').default;
+const LastItems = require('./containers/LastItems').default;
 const {
   LoginButton,
   AccessToken,
@@ -65,7 +67,6 @@ class BermudaSpace extends Component {
       // alert('Error fetching data: ' + error.toString());
     } else {
       console.log(result);
-      alert('Hello, ' + result.name);
       this.setState({fbName: result.name});
     }
   }
@@ -86,23 +87,21 @@ class BermudaSpace extends Component {
 
   render() {
     // this.requestForFacebookMe();
-    const fbDiv = (this.state.fbName) ? `Hello, ${this.state.fbName}` : "Welcome to React Native!";
+    const isLogin = (this.state.fbName);
+    const fbDiv = (isLogin) ? `Hello, ${this.state.fbName}` : "Welcome to React Native!";
+    const givingForm = (isLogin) ? <GivingForm /> : null;
+    const lastItems = (isLogin) ? <LastItems /> : null;
     return (
       <View style={styles.container}>
       <Text style={styles.welcome}>
         {fbDiv}
       </Text>
-      <Text style={styles.instructions}>
-      To get started, edit index.ios.js
-      </Text>
-      <Text style={styles.instructions}>
-      Press Cmd+R to reload,{'\n'}
-      Cmd+D or shake for dev menu
-      </Text>
+        {givingForm}
       <Login
         loginCallback={this.requestForFacebookMe}
         logoutCallback={this.logoutCallback}
       />
+        {lastItems}
       </View>
     );
   }

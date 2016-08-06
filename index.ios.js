@@ -1,8 +1,8 @@
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
+* Sample React Native App
+* https://github.com/facebook/react-native
+* @flow
+*/
 
 import React, { Component } from 'react';
 import {
@@ -14,51 +14,95 @@ import {
 const FBSDK = require('react-native-fbsdk');
 const {
   LoginButton,
-  AccessToken
+  AccessToken,
+  GraphRequest,
+  GraphRequestManager,
 } = FBSDK;
 
 var Login = React.createClass({
   render: function() {
     return (
       <View>
-        <LoginButton
-          publishPermissions={["publish_actions"]}
-          onLoginFinished={
-            (error, result) => {
-              if (error) {
-                alert("login has error: " + result.error);
-              } else if (result.isCancelled) {
-                alert("login is cancelled.");
-              } else {
-                AccessToken.getCurrentAccessToken().then(
-                  (data) => {
-                    alert(data.accessToken.toString())
-                  }
-                )
+      <LoginButton
+      publishPermissions={["publish_actions"]}
+      onLoginFinished={
+        (error, result) => {
+          if (error) {
+            alert("login has error: " + result.error);
+          } else if (result.isCancelled) {
+            alert("login is cancelled.");
+          } else {
+            AccessToken.getCurrentAccessToken().then(
+              (data) => {
+                this.props.loginCallback();
               }
-            }
+            )
           }
-          onLogoutFinished={() => alert("logout.")}/>
+        }
+      }
+      onLogoutFinished={() => {
+        this.props.logoutCallback();
+        alert("Logout.");
+      }}/>
       </View>
     );
   }
 });
 
 class BermudaSpace extends Component {
+  constructor() {
+    super();
+    this.state = {
+      fbName: null,
+    };
+    this._responseInfoCallback = this._responseInfoCallback.bind(this);
+    this.logoutCallback = this.logoutCallback.bind(this);
+    this.requestForFacebookMe();
+  }
+
+  _responseInfoCallback = (error: ?Object, result: ?Object) => {
+    if (error) {
+      // alert('Error fetching data: ' + error.toString());
+    } else {
+      console.log(result);
+      alert('Hello, ' + result.name);
+      this.setState({fbName: result.name});
+    }
+  }
+
+  requestForFacebookMe = () => {
+    const infoRequest = new GraphRequest(
+      '/me',
+      null,
+      this._responseInfoCallback,
+    );
+    // Start the graph request.
+    new GraphRequestManager().addRequest(infoRequest).start();
+  }
+
+  logoutCallback = () => {
+    this.setState({fbName: ''});
+  }
+
   render() {
+    // this.requestForFacebookMe();
+    const fbDiv = (this.state.fbName) ? `Hello, ${this.state.fbName}` : "Welcome to React Native!";
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.ios.js
-        </Text>
-        <Text style={styles.instructions}>
-          Press Cmd+R to reload,{'\n'}
-          Cmd+D or shake for dev menu
-        </Text>
-        <Login />
+      <Text style={styles.welcome}>
+        {fbDiv}
+      </Text>
+      <Text style={styles.instructions}>
+      To get started, edit index.ios.js
+      </Text>
+      <Text style={styles.instructions}>
+      Press Cmd+R to reload,{'\n'}
+      Cmd+D or shake for dev menu
+      </Text>
+      <Login
+        loginCallback={this.requestForFacebookMe}
+        logoutCallback={this.logoutCallback}
+      />
       </View>
     );
   }
